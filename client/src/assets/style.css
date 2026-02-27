@@ -1,0 +1,24 @@
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg-dark-main: #1a1a1a;
+  --bg-dark-sec: #131313;
+  --bg-dark-accent: #181818;
+  --bg-dark-border: #3b3b3b70;
+
+  --bg-light-main: #dedede;
+  --bg-light-sec: #dddddd;
+  --bg-light-accent: #e7e7e7;
+  --bg-light-border: #d1d1d1;
+}
+
+body {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+}
