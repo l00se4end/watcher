@@ -1,0 +1,77 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: pg_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - internal_net
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    restart: unless-stopped
+    command: redis-server --save 60 1 --loglevel warning
+    volumes:
+      - redis_data:/data
+    networks:
+      - internal_net
+
+  caddy:
+    image: caddy:2.7-alpine
+    container_name: watcher_proxy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - internal_net
+      - public_net
+
+  watcher-app:
+    build: .. # Putanja do tvog Dockerfile-a koji je u rootu
+    container_name: watcher_app
+    restart: unless-stopped
+    env_file: ../.env
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - internal_net
+      - public_net
+
+  pocket-id:
+    image: ghcr.io/pocket-id/pocket-id:v2
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - 1411:1411
+    volumes:
+      - "./data:/app/data"
+    # Optional healthcheck
+    healthcheck:
+      test: [ "CMD", "/app/pocket-id", "healthcheck" ]
+      interval: 1m30s
+      timeout: 5s
+      retries: 2
+      start_period: 10s
+
+networks:
+  internal_net:
+    internal: true
+  public_net:
+
+volumes:
+  postgres_data:
+  redis_data:
+  caddy_data:
+  caddy_config:
