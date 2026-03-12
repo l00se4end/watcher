@@ -38,7 +38,9 @@ services:
       - public_net
 
   watcher-app:
-    build: ..
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: watcher_app
     restart: unless-stopped
     env_file: ../.env
@@ -47,8 +49,6 @@ services:
       - redis
     networks:
       - internal_net
-      - public_net
-
   pocket-id:
     image: ghcr.io/pocket-id/pocket-id:v2
     container_name: pocket-id  # DODANO: Da ga Caddy može naći pod ovim imenom

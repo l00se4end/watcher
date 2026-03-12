@@ -1,0 +1,31 @@
+localhost {
+    # Centralized Authentication Gatekeeper
+    # This block intercepts every incoming request to validate the session against Pocket ID.
+    # It implements the Forward Auth pattern, ensuring that unauthenticated requests 
+    # never reach the downstream application or API logic.
+    forward_auth pocket-id:1411 {
+        uri /api/verify
+        copy_headers X-Pocketid-User X-Pocketid-Email X-Pocketid-Uid
+    }
+
+    # API Routing Layer
+    # Proxies authenticated requests with the /api/ prefix to the Go backend service.
+    # This maintains a clean separation between stateful API logic and static assets.
+    handle "/api/*" {
+        reverse_proxy watcher-app:8080
+    }
+
+    # Frontend Single Page Application (SPA) Ingress
+    # Serves the Vue.js application from the Vite development server.
+    # Using a reverse proxy here unifies the origin, effectively mitigating 
+    # Cross-Origin Resource Sharing (CORS) complexities at the infrastructure level.
+    handle {
+        reverse_proxy vue-app:5173
+    }
+}
+
+# Identity Provider (IdP) Management Interface
+# Exposed on a separate subdomain to isolate authentication workflows.
+auth.localhost {
+    reverse_proxy pocket-id:1411
+}
